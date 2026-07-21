@@ -15,3 +15,22 @@ tier — switched runtime AI to Google's Gemini API instead.
 **Blockers:** None currently.
 **Plan for tomorrow:** Document upload pipeline — Vercel Blob storage, PDF text
 extraction, chunking, and Gemini embeddings.
+
+
+## Day 2 — 2026-07-21
+**Hours worked:** [fill in]
+**What I did:** Built the full ingestion pipeline — PDF extraction (unpdf), chunking,
+Gemini embeddings (gemini-embedding-001 truncated to 1536 dims). Set up Vercel Blob
+for storage. Discovered the auth flow was incomplete from Day 1 — added the missing
+Auth.js route handler, a credentials signup endpoint that also provisions a starter
+workspace, plain signup/login pages, and a real dashboard page. Verified end to end:
+signed up, landed on the dashboard, uploaded a real PDF, watched it go
+processing → ready, and confirmed actual embedded chunks in Neon directly via SQL
+rather than trusting the UI status alone.
+**What I learned:** Wiring Auth.js's config isn't enough on its own — it needs the
+[...nextauth] catch-all route handler to actually respond to requests, and a
+Credentials provider only verifies logins, it doesn't create accounts, so a separate
+signup endpoint was required. Worth checking data at the source (SQL) rather than
+trusting a status badge in the UI.
+**Blockers:** None currently.
+**Plan for tomorrow:** Vector retrieval and the RAG chat core — the actual product.
