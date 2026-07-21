@@ -12,6 +12,26 @@ export function DocumentUpload({ workspaceId }: { workspaceId: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const router = useRouter();
 
+  const pollStatus = useCallback(
+    (documentId: string) => {
+      const interval = setInterval(async () => {
+        const res = await fetch(`/api/documents/${documentId}`);
+        const data = await res.json();
+
+        if (data.document.status === "ready") {
+          clearInterval(interval);
+          setState("ready");
+          router.refresh();
+        } else if (data.document.status === "failed") {
+          clearInterval(interval);
+          setError("Processing failed — the file may be corrupted or unreadable");
+          setState("failed");
+        }
+      }, 2000);
+    },
+    [router]
+  );
+
   const uploadFile = useCallback(
     async (file: File) => {
       setFileName(file.name);
@@ -39,25 +59,8 @@ export function DocumentUpload({ workspaceId }: { workspaceId: string }) {
         setState("failed");
       }
     },
-    [workspaceId]
+    [workspaceId, pollStatus]
   );
-
-  const pollStatus = (documentId: string) => {
-    const interval = setInterval(async () => {
-      const res = await fetch(`/api/documents/${documentId}`);
-      const data = await res.json();
-
-      if (data.document.status === "ready") {
-        clearInterval(interval);
-        setState("ready");
-        router.refresh();
-      } else if (data.document.status === "failed") {
-        clearInterval(interval);
-        setError("Processing failed — the file may be corrupted or unreadable");
-        setState("failed");
-      }
-    }, 2000);
-  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -85,9 +88,7 @@ export function DocumentUpload({ workspaceId }: { workspaceId: string }) {
           isDragging ? "border-accent bg-accent/5" : "border-border"
         }`}
       >
-        <p className="text-sm text-muted-foreground">
-          Drag a PDF here, or
-        </p>
+        <p className="text-sm text-muted-foreground">Drag a PDF here, or</p>
         <label className="cursor-pointer text-sm font-medium text-accent underline underline-offset-4">
           browse your files
           <input
@@ -118,7 +119,9 @@ export function DocumentUpload({ workspaceId }: { workspaceId: string }) {
     return (
       <div className="flex items-center gap-3 rounded-xl border p-6">
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-        <p className="text-sm">Reading and indexing {fileName}… this can take a minute for longer documents.</p>
+        <p className="text-sm">
+          Reading and indexing {fileName}… this can take a minute for longer documents.
+        </p>
       </div>
     );
   }
