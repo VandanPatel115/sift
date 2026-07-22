@@ -34,3 +34,24 @@ signup endpoint was required. Worth checking data at the source (SQL) rather tha
 trusting a status badge in the UI.
 **Blockers:** None currently.
 **Plan for tomorrow:** Vector retrieval and the RAG chat core — the actual product.
+
+
+## Day 3 — 2026-07-22
+**Hours worked:** [fill in]
+**What I did:** Built vector retrieval via pgvector's cosine distance operator, and
+the full RAG chat route — retrieve top-6 chunks, build numbered context, stream a
+Gemini-generated answer, save both messages with citation metadata. Built the chat
+UI with streaming bubbles and citation chips, plus real error handling (was
+originally missing — failed requests left an empty bubble with no feedback).
+**What I learned:** Model availability on Gemini's free tier is genuinely volatile
+right now — gemini-2.5-flash 404s for new API keys (deprecated ahead of its official
+shutdown date), and gemini-3.5-flash, despite being the current GA flagship, was
+returning sustained 503s for free-tier keys during its post-launch capacity ramp-up.
+Added retry-with-backoff for transient errors, but ultimately had to query my own
+key's live model list and test candidates directly against the API rather than
+trust documentation, which lags real availability. Landed on gemini-3.1-flash-lite.
+Verified end to end: real question asked, real cited answer generated, confirmed
+the message rows in Neon directly rather than trusting the UI alone.
+**Blockers:** None now — resolved.
+**Plan for tomorrow:** Workspace roles/permissions (RBAC), the dashboard's document
+list and search, and audit logging.
