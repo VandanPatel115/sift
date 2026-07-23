@@ -55,3 +55,21 @@ the message rows in Neon directly rather than trusting the UI alone.
 **Blockers:** None now — resolved.
 **Plan for tomorrow:** Workspace roles/permissions (RBAC), the dashboard's document
 list and search, and audit logging.
+
+
+## Day 4 — 2026-07-23
+**Hours worked:** [fill in]
+**What I did:** Built server-side RBAC with a role hierarchy (viewer < member < admin
+< owner), enforced on upload (member+) and delete (admin+), never trusting a role
+sent from the client. Added audit logging on both mutations. Built document search,
+soft-delete with a confirm step, and a 14-day usage chart showing daily query volume.
+**What I learned:** Postgres full-text search (tsvector) treats underscores as part
+of a word, not a separator — searching "CV" against "CV_VandanKunalPatel.pdf" failed
+because the whole filename tokenized as one lexeme. Switched to ILIKE substring
+matching, which is the right tool for filename search versus full-text search's
+actual use case (matching words within prose). Also caught myself pasting code into
+the wrong file twice tonight (route.ts vs [id]/route.ts) — now always verifying with
+cat before assuming a paste landed correctly.
+**Blockers:** None.
+**Plan for tomorrow:** Polish pass — loading/empty/error states across every screen,
+Cmd+K command palette, toasts, accessibility, and real tests.
