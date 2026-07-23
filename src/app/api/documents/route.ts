@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { extractTextFromPdf } from "@/lib/ingestion/extract";
 import { chunkText } from "@/lib/ingestion/chunk";
 import { embedChunks } from "@/lib/ingestion/embed";
+import { requireRole, logAction } from "@/lib/rbac";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -21,6 +22,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "File exceeds 20MB limit" }, { status: 400 });
   }
 
+  try {
+    await requireRole(session.user.id, workspaceId, "member");
+  } catch {
+    return NextResponse.json({ error: "You don't have permission to upload documents here" }, { status: 403 });
+  }
+
   const blob = await put(file.name, file, { access: "public" });
 
   const document = await db.document.create({
@@ -34,6 +41,8 @@ export async function POST(req: NextRequest) {
       uploadedById: session.user.id,
     },
   });
+
+  await logAction(workspaceId, session.user.id, "document.upload", "Document", document.id, { title: file.name });
 
   processDocument(document.id, blob.url).catch(async (err) => {
     console.error(`Document processing failed for ${document.id}:`, err);
